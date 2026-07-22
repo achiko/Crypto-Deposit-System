@@ -1,9 +1,7 @@
-// lib.rs
-
 //! Chain-neutral domain types and wallet abstractions for crypto deposits.
 //!
-//! Chain ledger behavior and asset kind are separate concepts represented by
-//! plain data structures.
+//! The current API provides asset metadata, generated-key output, ledger
+//! classification, and an object-safe wallet adapter boundary.
 //!
 //! # Example
 //!

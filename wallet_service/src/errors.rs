@@ -1,4 +1,3 @@
-/// errors.rs
 use thiserror::Error;
 
 use crate::AssetId;

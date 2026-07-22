@@ -1,9 +1,9 @@
 # Wallet Service
 
 `wallet-service` is the Rust foundation for chain-neutral crypto deposit wallet
-adapters. The crate currently provides a validated domain model and a minimal,
-object-safe `Wallet` trait. Concrete Bitcoin, Ethereum, Solana, and token
-adapters are not implemented yet.
+adapters. The crate currently provides asset metadata, generated-key output,
+ledger classification, and a minimal object-safe `Wallet` trait. Concrete
+Bitcoin, Ethereum, Solana, and token adapters are not implemented yet.
 
 The intended service boundary is stateless: Payment Service owns deposits,
 accounting, and the decision to collect, while Indexer Service owns blockchain
@@ -13,39 +13,27 @@ architecture.
 
 ## Current API
 
-- `ChainId`, `AssetId`, and `Address` prevent accidental interchange with
-  arbitrary strings and reject blank values. Chain-specific adapters must still
-  validate and normalize address syntax.
-- `Chain` records whether a network uses a UTXO or account ledger.
-- `Asset` separates native assets from tokens and selects a validated
-  `CollectionModel` during construction.
-- Token construction rejects UTXO chains, cross-chain fee assets, and token fee
-  assets. A token must use a native fee asset on the same account-based chain.
-- `AssetAddress` associates an address with its asset without copying all asset
-  metadata.
-- `Amount` stores an arbitrary-size, non-negative integer in atomic units. The
-  asset's `decimals` value is display metadata; monetary values are not stored
-  as floating point numbers.
-- `Wallet` is currently the object-safe adapter boundary for one configured
-  asset and exposes `asset()`. Key management, balances, transaction building,
-  signing, collection, broadcasting, and chain observation remain future work.
+- `Asset` stores an asset identifier, chain identifier, symbol, display
+  decimals, and an optional token contract or mint address.
+- `Keypair` contains a generated address, encoded public key, and optional
+  private signing key.
+- `ChainId`, `AssetId`, and `Address` are distinct domain types used by asset
+  metadata and generated keys.
+- `LedgerModel` distinguishes UTXO chains from account-based chains.
+- `Wallet` is the object-safe adapter boundary for one configured asset. It
+  exposes `asset()` and asynchronous `generate_keypair()` operations.
+- `WalletError` currently reports unsupported assets.
+
+Balance lookup, transaction construction, signing, collection, broadcasting,
+and chain observation are not part of the current trait.
 
 ## Example
 
 ```rust
-use wallet_service::{
-    Asset, AssetId, Chain, ChainId, CollectionModel, DomainError, LedgerModel,
-};
+use wallet_service::LedgerModel;
 
-fn main() -> Result<(), DomainError> {
-    let chain_id = ChainId::try_from("bitcoin-mainnet")?;
-    let bitcoin = Chain::new(chain_id, LedgerModel::Utxo);
-    let btc_id = AssetId::try_from("BTC")?;
-    let btc = Asset::native(btc_id, &bitcoin, "BTC", 8);
-
-    assert_eq!(btc.collection_model(), CollectionModel::Utxo);
-    Ok(())
-}
+let ledger_model = LedgerModel::Utxo;
+assert!(matches!(ledger_model, LedgerModel::Utxo));
 ```
 
 Run the example binary:
