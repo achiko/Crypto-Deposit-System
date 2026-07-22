@@ -6,16 +6,24 @@
 //! # Example
 //!
 //! ```
-//! use wallet_service::LedgerModel;
+//! use wallet_service::{BitcoinWallet, Wallet, WalletError};
 //!
-//! let ledger_model = LedgerModel::Utxo;
-//! assert!(matches!(ledger_model, LedgerModel::Utxo));
+//! # #[tokio::main(flavor = "current_thread")]
+//! # async fn main() -> Result<(), WalletError> {
+//! let wallet: Box<dyn Wallet> = Box::new(BitcoinWallet::mainnet());
+//! let keypair = wallet.generate_keypair().await?;
+//!
+//! assert!(keypair.address.as_str().starts_with("bc1q"));
+//! # Ok(())
+//! # }
 //! ```
 
+mod bitcoin;
 mod domain;
 mod errors;
 mod wallet;
 
+pub use bitcoin::BitcoinWallet;
 pub use domain::{Address, Asset, AssetId, ChainId, Keypair, LedgerModel};
 
 pub use errors::WalletError;

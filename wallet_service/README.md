@@ -2,8 +2,9 @@
 
 `wallet-service` is the Rust foundation for chain-neutral crypto deposit wallet
 adapters. The crate currently provides asset metadata, generated-key output,
-ledger classification, and a minimal object-safe `Wallet` trait. Concrete
-Bitcoin, Ethereum, Solana, and token adapters are not implemented yet.
+ledger classification, and a minimal object-safe `Wallet` trait. It includes a
+working Bitcoin mainnet example; Ethereum, Solana, and token adapters are not
+implemented yet.
 
 The intended service boundary is stateless: Payment Service owns deposits,
 accounting, and the decision to collect, while Indexer Service owns blockchain
@@ -14,7 +15,7 @@ architecture.
 ## Current API
 
 - `Asset` stores an asset identifier, chain identifier, symbol, display
-  decimals, and an optional token contract or mint address.
+  decimals, ledger model, and an optional token contract or mint address.
 - `Keypair` contains a generated address, encoded public key, and optional
   private signing key.
 - `ChainId`, `AssetId`, and `Address` are distinct domain types used by asset
@@ -22,7 +23,10 @@ architecture.
 - `LedgerModel` distinguishes UTXO chains from account-based chains.
 - `Wallet` is the object-safe adapter boundary for one configured asset. It
   exposes `asset()` and asynchronous `generate_keypair()` operations.
-- `WalletError` currently reports unsupported assets.
+- `WalletError` reports unsupported assets and key generation or encoding
+  failures.
+- `BitcoinWallet::mainnet()` initializes BTC metadata and generates secure
+  secp256k1 keys with native SegWit (`bc1q...`) addresses.
 
 Balance lookup, transaction construction, signing, collection, broadcasting,
 and chain observation are not part of the current trait.
@@ -30,11 +34,21 @@ and chain observation are not part of the current trait.
 ## Example
 
 ```rust
-use wallet_service::LedgerModel;
+use wallet_service::{BitcoinWallet, Wallet, WalletError};
 
-let ledger_model = LedgerModel::Utxo;
-assert!(matches!(ledger_model, LedgerModel::Utxo));
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<(), WalletError> {
+    let wallet: Box<dyn Wallet> = Box::new(BitcoinWallet::mainnet());
+    let keypair = wallet.generate_keypair().await?;
+
+    println!("Generated Bitcoin address: {}", keypair.address);
+    Ok(())
+}
 ```
+
+The returned private key bytes are wrapped in zeroizing memory and are never
+logged. This example does not persist or encrypt keys; production custody
+requires a dedicated secure storage or signing system.
 
 Run the example binary:
 

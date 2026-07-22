@@ -9,4 +9,10 @@ pub enum WalletError {
     #[error("unsupported asset: {0:?}")]
     /// The requested asset is not supported by this wallet adapter.
     UnsupportedAsset(AssetId),
+    /// A wallet could not create or encode a keypair.
+    #[error("key generation failed: {reason}")]
+    KeyGeneration {
+        /// Adapter-specific failure description.
+        reason: String,
+    },
 }
