@@ -6,14 +6,19 @@
 //! # Example
 //!
 //! ```
-//! use wallet_service::{BitcoinWallet, Wallet, WalletError};
+//! use wallet_service::{BitcoinWallet, EthereumWallet, Wallet, WalletError};
 //!
 //! # #[tokio::main(flavor = "current_thread")]
 //! # async fn main() -> Result<(), WalletError> {
-//! let wallet: Box<dyn Wallet> = Box::new(BitcoinWallet::mainnet());
-//! let keypair = wallet.generate_keypair().await?;
+//! let wallets: Vec<Box<dyn Wallet>> = vec![
+//!     Box::new(BitcoinWallet::mainnet()),
+//!     Box::new(EthereumWallet::mainnet()),
+//! ];
 //!
-//! assert!(keypair.address.as_str().starts_with("bc1q"));
+//! for wallet in wallets {
+//!     let keypair = wallet.generate_keypair().await?;
+//!     assert!(keypair.private_key.is_some());
+//! }
 //! # Ok(())
 //! # }
 //! ```
@@ -21,10 +26,12 @@
 mod bitcoin;
 mod domain;
 mod errors;
+mod ethereum;
 mod wallet;
 
 pub use bitcoin::BitcoinWallet;
 pub use domain::{Address, Asset, AssetId, ChainId, Keypair, LedgerModel};
+pub use ethereum::EthereumWallet;
 
 pub use errors::WalletError;
 

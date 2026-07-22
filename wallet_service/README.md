@@ -3,7 +3,7 @@
 `wallet-service` is the Rust foundation for chain-neutral crypto deposit wallet
 adapters. The crate currently provides asset metadata, generated-key output,
 ledger classification, and a minimal object-safe `Wallet` trait. It includes a
-working Bitcoin mainnet example; Ethereum, Solana, and token adapters are not
+working Bitcoin and Ethereum mainnet examples; Solana and token adapters are not
 implemented yet.
 
 The intended service boundary is stateless: Payment Service owns deposits,
@@ -27,6 +27,9 @@ architecture.
   failures.
 - `BitcoinWallet::mainnet()` initializes BTC metadata and generates secure
   secp256k1 keys with native SegWit (`bc1q...`) addresses.
+- `EthereumWallet::mainnet()` initializes ETH metadata and derives lowercase
+  `0x...` addresses from Keccak-256 hashes of uncompressed secp256k1 public
+  keys.
 
 Balance lookup, transaction construction, signing, collection, broadcasting,
 and chain observation are not part of the current trait.
@@ -34,14 +37,19 @@ and chain observation are not part of the current trait.
 ## Example
 
 ```rust
-use wallet_service::{BitcoinWallet, Wallet, WalletError};
+use wallet_service::{BitcoinWallet, EthereumWallet, Wallet, WalletError};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), WalletError> {
-    let wallet: Box<dyn Wallet> = Box::new(BitcoinWallet::mainnet());
-    let keypair = wallet.generate_keypair().await?;
+    let wallets: Vec<Box<dyn Wallet>> = vec![
+        Box::new(BitcoinWallet::mainnet()),
+        Box::new(EthereumWallet::mainnet()),
+    ];
 
-    println!("Generated Bitcoin address: {}", keypair.address);
+    for wallet in wallets {
+        let keypair = wallet.generate_keypair().await?;
+        println!("Generated {} address: {}", wallet.asset().symbol, keypair.address);
+    }
     Ok(())
 }
 ```

@@ -1,22 +1,27 @@
-//! Working Bitcoin implementation of the chain-neutral wallet interface.
+//! Working Bitcoin and Ethereum implementations of the wallet interface.
 
-use wallet_service::{BitcoinWallet, Wallet, WalletError};
+use wallet_service::{BitcoinWallet, EthereumWallet, Wallet, WalletError};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), WalletError> {
-    let wallet: Box<dyn Wallet> = Box::new(BitcoinWallet::mainnet());
-    let asset = wallet.asset();
+    let wallets: Vec<Box<dyn Wallet>> = vec![
+        Box::new(BitcoinWallet::mainnet()),
+        Box::new(EthereumWallet::mainnet()),
+    ];
 
-    println!(
-        "Initialized {} on {} ({:?})",
-        asset.asset_id, asset.chain_id, asset.ledger_model
-    );
+    for wallet in wallets {
+        let asset = wallet.asset();
+        println!(
+            "Initialized {} on {} ({:?})",
+            asset.asset_id, asset.chain_id, asset.ledger_model
+        );
 
-    let keypair = wallet.generate_keypair().await?;
+        let keypair = wallet.generate_keypair().await?;
 
-    println!("Generated address: {}", keypair.address);
-    println!("Compressed public key: {} bytes", keypair.public_key.len());
-    println!("Private key generated: {}", keypair.private_key.is_some());
+        println!("Generated address: {}", keypair.address);
+        println!("Public key: {} bytes", keypair.public_key.len());
+        println!("Private key generated: {}", keypair.private_key.is_some());
+    }
 
     Ok(())
 }
