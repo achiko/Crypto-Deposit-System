@@ -1,30 +1,25 @@
+// lib.rs
+
 //! Chain-neutral domain types and wallet abstractions for crypto deposits.
 //!
-//! Chain ledger behavior and asset kind are separate concepts. Each [`Asset`]
-//! is constructed against a [`Chain`], so its collection strategy and native
-//! fee asset are valid before a wallet adapter can use it.
+//! Chain ledger behavior and asset kind are separate concepts represented by
+//! plain data structures.
 //!
 //! # Example
 //!
 //! ```
-//! use wallet_service::{Asset, AssetId, Chain, ChainId, CollectionModel, DomainError, LedgerModel};
+//! use wallet_service::LedgerModel;
 //!
-//! # fn main() -> Result<(), DomainError> {
-//! let chain_id = ChainId::try_from("bitcoin-mainnet")?;
-//! let bitcoin = Chain::new(chain_id, LedgerModel::Utxo);
-//! let btc_id = AssetId::try_from("BTC")?;
-//! let btc = Asset::native(btc_id, &bitcoin, "BTC", 8);
-//!
-//! assert_eq!(btc.collection_model(), CollectionModel::Utxo);
-//! # Ok(())
-//! # }
+//! let ledger_model = LedgerModel::Utxo;
+//! assert!(matches!(ledger_model, LedgerModel::Utxo));
 //! ```
 
 mod domain;
+mod errors;
 mod wallet;
 
-pub use domain::{
-    Address, Amount, Asset, AssetAddress, AssetId, AssetKind, Chain, ChainId, CollectionModel,
-    DomainError, LedgerModel,
-};
+pub use domain::{Address, Asset, AssetId, ChainId, Keypair, LedgerModel};
+
+pub use errors::WalletError;
+
 pub use wallet::Wallet;
