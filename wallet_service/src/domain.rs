@@ -1,5 +1,3 @@
-/// use num_bigint::BigUint;
-
 /// Static metadata for one configured asset adapter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Asset {

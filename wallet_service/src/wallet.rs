@@ -1,5 +1,7 @@
 // wallet.rs
 
+use async_trait::async_trait;
+
 use crate::{errors::WalletError, Asset, Keypair};
 
 /// Chain-specific operations for one configured asset.
@@ -8,6 +10,7 @@ use crate::{errors::WalletError, Asset, Keypair};
 /// heterogeneous wallet adapters behind `Arc<dyn Wallet>`.
 ///
 
+#[async_trait]
 pub trait Wallet: Send + Sync {
     /// Returns metadata for the asset handled by this adapter.
     fn asset(&self) -> &Asset;
