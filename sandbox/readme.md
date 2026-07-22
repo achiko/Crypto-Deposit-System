@@ -7,3 +7,4 @@
 [https://docs.rs/bitcoin/latest/bitcoin/](https://docs.rs/bitcoin/latest/bitcoin/)
 
 - **Bip39 crates** [Bip39 crates](https://docs.rs/bip39/latest/bip39/)
+- **Bip32 crates** [Bip32 crates](https://docs.rs/bip32/latest/bip32/)
