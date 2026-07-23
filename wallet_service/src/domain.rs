@@ -1,7 +1,5 @@
 use std::fmt;
 
-use zeroize::Zeroizing;
-
 /// Static metadata for one configured asset adapter.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Asset {
@@ -20,13 +18,17 @@ pub struct Asset {
 }
 
 /// Generated keypair for a configured asset adapter.
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Keypair {
     /// Generated chain address.
     pub address: Address,
     /// Encoded public key.
     pub public_key: Vec<u8>,
-    /// Secret signing key bytes, zeroized when dropped.
-    pub private_key: Option<Zeroizing<Vec<u8>>>,
+    /// Chain-native private key string.
+    ///
+    /// This is intentionally unprotected for the simplified key-generation
+    /// API. See `README.md` for the planned return to `zeroize::Zeroizing`.
+    pub private_key: String,
 }
 
 /// Stable identifier for a configured blockchain network.

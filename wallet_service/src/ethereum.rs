@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use secp256k1::{rand, PublicKey, Secp256k1, SecretKey};
 use sha3::{Digest, Keccak256};
-use zeroize::Zeroizing;
 
 use crate::{Address, Asset, AssetId, ChainId, Keypair, LedgerModel, Wallet, WalletError};
 
@@ -50,7 +49,7 @@ fn keypair_from_parts(private_key: SecretKey, public_key: PublicKey) -> Keypair 
     Keypair {
         address: Address::from(address),
         public_key: public_key.to_vec(),
-        private_key: Some(Zeroizing::new(private_key.secret_bytes().to_vec())),
+        private_key: format!("0x{}", hex::encode(private_key.secret_bytes())),
     }
 }
 
@@ -78,12 +77,14 @@ mod tests {
             .generate_keypair()
             .await
             .expect("Ethereum key generation should succeed");
-        let private_bytes = keypair
+        let private_hex = keypair
             .private_key
-            .as_ref()
-            .expect("generated Ethereum keypair should include private key bytes");
-        let private_key = SecretKey::from_slice(private_bytes.as_slice())
-            .expect("generated private key bytes should be valid");
+            .strip_prefix("0x")
+            .expect("generated Ethereum private key should have a 0x prefix");
+        let private_bytes =
+            hex::decode(private_hex).expect("generated Ethereum private key should be valid hex");
+        let private_key = SecretKey::from_slice(&private_bytes)
+            .expect("generated Ethereum private key should be a valid secp256k1 scalar");
         let secp = Secp256k1::new();
         let public_key = PublicKey::from_secret_key(&secp, &private_key);
         let expected = keypair_from_parts(private_key, public_key);
@@ -93,6 +94,7 @@ mod tests {
         assert_eq!(keypair.public_key.len(), 64);
         assert_eq!(keypair.address.as_str().len(), 42);
         assert!(keypair.address.as_str().starts_with("0x"));
+        assert_eq!(keypair.private_key.len(), 66);
     }
 
     #[test]
@@ -116,6 +118,10 @@ mod tests {
         assert_eq!(
             keypair.address.as_str(),
             "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf"
+        );
+        assert_eq!(
+            keypair.private_key,
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
         );
     }
 }

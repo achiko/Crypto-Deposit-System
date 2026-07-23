@@ -16,8 +16,8 @@ architecture.
 
 - `Asset` stores an asset identifier, chain identifier, symbol, display
   decimals, ledger model, and an optional token contract or mint address.
-- `Keypair` contains a generated address, encoded public key, and optional
-  private signing key.
+- `Keypair` contains a generated address, encoded public key, and required
+  chain-native private signing key string.
 - `ChainId`, `AssetId`, and `Address` are distinct domain types used by asset
   metadata and generated keys.
 - `LedgerModel` distinguishes UTXO chains from account-based chains.
@@ -49,14 +49,21 @@ async fn main() -> Result<(), WalletError> {
     for wallet in wallets {
         let keypair = wallet.generate_keypair().await?;
         println!("Generated {} address: {}", wallet.asset().symbol, keypair.address);
+        println!("Private key: {}", keypair.private_key);
     }
     Ok(())
 }
 ```
 
-The returned private key bytes are wrapped in zeroizing memory and are never
-logged. This example does not persist or encrypt keys; production custody
-requires a dedicated secure storage or signing system.
+The returned private key is an unprotected `String`: Bitcoin uses compressed
+mainnet WIF, while Ethereum uses `0x`-prefixed 32-byte lowercase hexadecimal.
+The example intentionally logs it and does not persist or encrypt it.
+
+This plain-string representation intentionally keeps the current key-generation
+example simple. When the service moves toward production key custody, revisit
+the [`zeroize`](https://crates.io/crates/zeroize) crate and wrap private-key
+material in `Zeroizing` again so it is cleared from memory when dropped. At that
+stage, private keys should also stop being logged.
 
 Run the example binary:
 

@@ -1,7 +1,6 @@
 use ::bitcoin::secp256k1::Secp256k1;
 use ::bitcoin::{Address as BitcoinAddress, CompressedPublicKey, Network, PrivateKey};
 use async_trait::async_trait;
-use zeroize::Zeroizing;
 
 use crate::{Address, Asset, AssetId, ChainId, Keypair, LedgerModel, Wallet, WalletError};
 
@@ -49,7 +48,7 @@ impl Wallet for BitcoinWallet {
         Ok(Keypair {
             address: Address::from(address.to_string()),
             public_key: public_key.to_bytes().to_vec(),
-            private_key: Some(Zeroizing::new(private_key.to_bytes())),
+            private_key: private_key.to_wif(),
         })
     }
 }
@@ -78,12 +77,9 @@ mod tests {
             .generate_keypair()
             .await
             .expect("Bitcoin key generation should succeed");
-        let private_bytes = keypair
-            .private_key
-            .as_ref()
-            .expect("generated Bitcoin keypair should include private key bytes");
-        let private_key = PrivateKey::from_slice(private_bytes.as_slice(), Network::Bitcoin)
-            .expect("generated private key bytes should be valid");
+        let private_key = PrivateKey::from_wif(&keypair.private_key)
+            .expect("generated Bitcoin private key should be valid WIF");
+        assert!(private_key.compressed);
         let secp = Secp256k1::new();
         let public_key = CompressedPublicKey::from_private_key(&secp, &private_key)
             .expect("generated Bitcoin public key should be compressed");
@@ -92,5 +88,9 @@ mod tests {
         assert_eq!(keypair.public_key, public_key.to_bytes());
         assert_eq!(keypair.address.as_str(), expected_address.to_string());
         assert!(keypair.address.as_str().starts_with("bc1q"));
+        assert!(
+            keypair.private_key.starts_with('K') || keypair.private_key.starts_with('L'),
+            "compressed Bitcoin mainnet WIF should start with K or L"
+        );
     }
 }

@@ -17,7 +17,7 @@
 //!
 //! for wallet in wallets {
 //!     let keypair = wallet.generate_keypair().await?;
-//!     assert!(keypair.private_key.is_some());
+//!     assert!(!keypair.private_key.is_empty());
 //! }
 //! # Ok(())
 //! # }

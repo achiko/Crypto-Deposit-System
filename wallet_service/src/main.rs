@@ -18,9 +18,10 @@ async fn main() -> Result<(), WalletError> {
 
         let keypair = wallet.generate_keypair().await?;
 
+        println!("Generated keypair: ================================");
         println!("Generated address: {}", keypair.address);
         println!("Public key: {} bytes", keypair.public_key.len());
-        println!("Private key generated: {}", keypair.private_key.is_some());
+        println!("Private key: {}", keypair.private_key);
     }
 
     Ok(())
