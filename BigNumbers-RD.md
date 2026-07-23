@@ -5,8 +5,6 @@
 https://docs.rs/num-bigint/latest/num_bigint/index.html
 
 
-
-
 ## Introduction
 
 This document describes how to use big numbers in Rust. It is based on the [BigInt](https://docs.rs/num-bigint/latest/num_bigint/) crate, which is a Rust implementation of arbitrary-precision integers.
