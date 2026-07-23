@@ -19,4 +19,9 @@ pub trait Wallet: Send + Sync {
     ///
     /// Returns [`WalletError`] if secure key generation or address derivation fails.
     async fn generate_keypair(&self) -> Result<Keypair, WalletError>;
+
+    // TODO: Add balance lookup.
+    // TODO: Add transaction construction.
+    // TODO: Add transaction signing.
+    // TODO: Add transaction broadcasting.
 }
